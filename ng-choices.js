@@ -3,20 +3,39 @@ import Choices from 'choices.js';
 
 class ChoicesComponent {
     constructor() {
+        this.options = {};
         this.onChange = (_) => { };
         this.onTouched = () => { };
     }
     /**
      * @return {?}
      */
+    ngOnInit() {
+        this.options = this.options || {};
+        this.options.searchFields = this.options.searchFields || ['label', 'value'];
+        if (typeof this.options.searchFields === 'string') {
+            this.options.searchFields = [this.options.searchFields, this.options.searchFields];
+        }
+        if (this.search) {
+            this.options.callbackOnItemSearch = this.searchCallback;
+        }
+    }
+    /**
+     * @return {?}
+     */
     ngOnDestroy() {
         this.choicesRef.destroy();
+        if (this.searchSubscription) {
+            this.searchSubscription.unsubscribe();
+        }
     }
     /**
      * @return {?}
      */
     ngAfterViewInit() {
         this.choicesRef = new Choices(this.selectRef.nativeElement, this.options);
+        this.choicesRef.setValue(this.value);
+        this.selectRef.nativeElement.addEventListener('change', (value) => (this.value = value));
     }
     /**
      * @return {?}
@@ -46,6 +65,9 @@ class ChoicesComponent {
      */
     writeValue(value) {
         this.innerValue = value;
+        if (this.choicesRef) {
+            this.choicesRef.setValue(value);
+        }
     }
     /**
      * @param {?} fn
@@ -61,6 +83,22 @@ class ChoicesComponent {
     registerOnTouched(fn) {
         this.onTouched = fn;
     }
+    /**
+     * @param {?} value
+     * @param {?} fn
+     * @param {?} passedInput
+     * @return {?}
+     */
+    searchCallback(value, fn, passedInput) {
+        if (this.searchSubscription) {
+            this.searchSubscription.unsubscribe();
+        }
+        const [labelField, valueField] = (this.options.searchFields);
+        this.searchSubscription = this
+            .search(value)
+            .subscribe(results => fn(results, valueField, labelField));
+    }
+    ;
 }
 ChoicesComponent.decorators = [
     { type: Component, args: [{
@@ -74,6 +112,7 @@ ChoicesComponent.decorators = [
  */
 ChoicesComponent.ctorParameters = () => [];
 ChoicesComponent.propDecorators = {
+    'search': [{ type: Input },],
     'options': [{ type: Input },],
     'selectRef': [{ type: ViewChild, args: ['select',] },],
 };

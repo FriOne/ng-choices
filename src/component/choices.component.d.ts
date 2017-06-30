@@ -1,13 +1,17 @@
-import { AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
+import { AfterViewInit, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { ControlValueAccessor } from '@angular/forms';
 import { ChoicesOptions } from 'choices.js';
-export declare class ChoicesComponent implements OnDestroy, AfterViewInit, ControlValueAccessor {
+import { Observable } from 'rxjs/Observable';
+export declare class ChoicesComponent implements OnInit, OnDestroy, AfterViewInit, ControlValueAccessor {
+    search: (term: string) => Observable<any[]>;
     options: ChoicesOptions;
     selectRef: ElementRef;
+    private searchSubscription;
     private choicesRef;
     private innerValue;
     private onChange;
     private onTouched;
+    ngOnInit(): void;
     ngOnDestroy(): void;
     ngAfterViewInit(): void;
     value: any;
@@ -15,4 +19,5 @@ export declare class ChoicesComponent implements OnDestroy, AfterViewInit, Contr
     writeValue(value: any): void;
     registerOnChange(fn: (value: any) => void): void;
     registerOnTouched(fn: () => void): void;
+    private searchCallback(value, fn, passedInput);
 }
